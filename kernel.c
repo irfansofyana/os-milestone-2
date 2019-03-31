@@ -81,28 +81,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
         case 0X23:
             getArgv(BX, CX);
             break;
-        case 0X90:
-            findDir(&AH, &d, BX, &i, CX);
-            p = (int *) CX;
-            if (*p == SUCCESS) {
-                *p = 1;
-            } else {
-                *p = 0;
-            }
-            p = (int *) DX;
-            *p = d;
-            break;
-        case 0X91:
-            findFile(&AH, &d, BX, &i, CX);
-            p = (int *) CX;
-            if (*p == SUCCESS) {
-                *p = 1;
-            } else {
-                *p = 0;
-            }
-            p = (int *) DX;
-            *p = d;
-            break;
         default:
             printString("Invalid interrupt");
     }
@@ -268,16 +246,16 @@ void readFile(char *buffer, char *path, int *result, char parentIndex) {
     int i = 0;
     char current;
     char dir[SECTOR_SIZE];
-    findFile(parentIndex, &current, path, &i, result);
+    findFile(&parentIndex, &current, path, &i, result);
     readSector(dir, SECTORS_SECTOR);
 
     if (*result == SUCCESS) {
         char processing = TRUE;
         char * sectors = dir + (current * ENTRY_LENGTH);
-		for (i = 0; (i < MAX_SECTORS) && (processing == TRUE); i++){
+        for (i = 0; (i < MAX_SECTORS) && (processing == TRUE); i++){
             if (sectors[i] == 0) processing = FALSE;
-			else readSector(buffer + i * SECTOR_SIZE, sectors[i]);
-		}
+            else readSector(buffer + i * SECTOR_SIZE, sectors[i]);
+        }
     }
 }
 
