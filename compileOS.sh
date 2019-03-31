@@ -14,39 +14,28 @@ dd if=kernel of=floppya.img bs=512 conv=notrunc seek=1
 
 as86 lib.asm -o lib_asm.o
 
-prog=shell
-bcc -ansi -c -o $prog.o $prog.c
-ld86 -o $prog -d $prog.o lib_asm.o
-./loadFile $prog
+bcc -ansi -c -o shell.o shell.c
+ld86 -o shell -d shell.o lib_asm.o
+./loadFile shell
 
-prog=echo
-bcc -ansi -c -o $prog.o $prog.c
-ld86 -o $prog -d $prog.o lib_asm.o
-./loadFile $prog
+bcc -ansi -c -o echo.o echo.c
+ld86 -o echo -d echo.o lib_asm.o
+./loadFile echo
 
-prog=ls
-bcc -ansi -c -o $prog.o $prog.c
-ld86 -o $prog -d $prog.o lib_asm.o
-./loadFile $prog
+bcc -ansi -c -o ls.o ls.c
+ld86 -o ls -d ls.o lib_asm.o
+./loadFile ls
 
-prog=rm
-bcc -ansi -c -o $prog.o $prog.c
-ld86 -o $prog -d $prog.o lib_asm.o
-./loadFile $prog
+bcc -ansi -c -o rm.o rm.c
+ld86 -o rm -d rm.o lib_asm.o
+./loadFile rm
 
-prog=mkdir
-bcc -ansi -c -o $prog.o $prog.c
-ld86 -o $prog -d $prog.o lib_asm.o
-./loadFile $prog
+bcc -ansi -c -o mkdir.o mkdir.c
+ld86 -o mkdir -d mkdir.o lib_asm.o
+./loadFile mkdir
 
-prog=pwd
-bcc -ansi -c -o $prog.o $prog.c
-ld86 -o $prog -d $prog.o lib_asm.o
-./loadFile $prog
-
-prog=cat
-bcc -ansi -c -o $prog.o $prog.c
-ld86 -o $prog -d $prog.o lib_asm.o
-./loadFile $prog
+bcc -ansi -c -o cat.o cat.c
+ld86 -o cat -d cat.o lib_asm.o
+./loadFile cat
 
 ./loadFile keyproc2

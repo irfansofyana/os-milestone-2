@@ -1,31 +1,18 @@
 #include "kernel.h"
 
 int main() {
-    int succ = 0;
-    char buffer[MAX_SECTORS * SECTOR_SIZE];
-    int x;
-    int y;
-    char curdir = 0xFF; // root
-    char argc = 0;
+    int success;
+    char buf[MAX_SECTORS * SECTOR_SIZE];
     char *argv[2];
-    int i = 0;
-    int j = 0;
     makeInterrupt21();
     
-    while (i <= 14){
-        if (j == 80){
-            j = 0;
-            i++;
-        }
-        putInMemory(0xB000, 0x8000 + ((80*i + j-1)*2), ' ' );
-        putInMemory(0xB000, 0x8001 + ((80*i + j-1)*2), 0x3 );
-        j++;
-    }
+    success = 0;
+    // interrupt(0x21, 0x20, root, argc, argv)
+    // Default : root : 0xFF, argc = 0
+    interrupt(0x21, 0x20, 0xFF, 0, argv);
 
-    // Set default args.
-    interrupt(0x21, 0x20, curdir, argc, argv);
-    // Calls shell.
-    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
+    // Interrupt untuk memanggil shell
+    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
     while (1);  
 }
 void handleInterrupt21 (int AX, int BX, int CX, int DX) {
@@ -80,28 +67,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
             break;
         case 0X23:
             getArgv(BX, CX);
-            break;
-        case 0X90:
-            findDir(&AH, &d, BX, &i, CX);
-            p = (int *) CX;
-            if (*p == SUCCESS) {
-                *p = 1;
-            } else {
-                *p = 0;
-            }
-            p = (int *) DX;
-            *p = d;
-            break;
-        case 0X91:
-            findFile(&AH, &d, BX, &i, CX);
-            p = (int *) CX;
-            if (*p == SUCCESS) {
-                *p = 1;
-            } else {
-                *p = 0;
-            }
-            p = (int *) DX;
-            *p = d;
             break;
         default:
             printString("Invalid interrupt");
@@ -268,16 +233,16 @@ void readFile(char *buffer, char *path, int *result, char parentIndex) {
     int i = 0;
     char current;
     char dir[SECTOR_SIZE];
-    findFile(parentIndex, &current, path, &i, result);
+    findFile(&parentIndex, &current, path, &i, result);
     readSector(dir, SECTORS_SECTOR);
 
     if (*result == SUCCESS) {
         char processing = TRUE;
         char * sectors = dir + (current * ENTRY_LENGTH);
-		for (i = 0; (i < MAX_SECTORS) && (processing == TRUE); i++){
+        for (i = 0; (i < MAX_SECTORS) && (processing == TRUE); i++){
             if (sectors[i] == 0) processing = FALSE;
-			else readSector(buffer + i * SECTOR_SIZE, sectors[i]);
-		}
+            else readSector(buffer + i * SECTOR_SIZE, sectors[i]);
+        }
     }
 }
 
