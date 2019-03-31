@@ -188,7 +188,9 @@ void findFile(char * parent, char * current, char * filename, int * idx, int * r
     char name[MAX_FILENAME+3];
     char dir[SECTOR_SIZE];
     char file; char found = 0;
-    int cnt = 0; int i = 0;
+    int cnt = 0;
+    int i = 0;
+    int j;
     if (filename[*idx] == '/')
         *idx++;
     for (i = 0; filename[*idx+i] != '/' && filename[*idx+i] != '\0'; i++)
@@ -197,7 +199,7 @@ void findFile(char * parent, char * current, char * filename, int * idx, int * r
         file = 1;
     else file = 0;
     name[i] = '\0';
-    int j = i;
+    j = i;
     if (!file){
         readSector(dir, DIRS_SECTOR);
         cnt = MAX_DIRS;
@@ -210,7 +212,7 @@ void findFile(char * parent, char * current, char * filename, int * idx, int * r
     while ((i < cnt) && !found) {
         if ((dir[i * ENTRY_LENGTH] == *parent) && (cmpArray(name, dir + (i * ENTRY_LENGTH) + 1, MAX_FILENAME)))
             found = 1;
-        else i++
+        else i++;
     }
     
     if (found){
@@ -228,8 +230,8 @@ void findFile(char * parent, char * current, char * filename, int * idx, int * r
 
 void findDir(char * parent, char * current, char * filename, int * idx, int * result) {
     char name[MAX_FILENAME+1];
-    int i = 0;
     char end; char dir[SECTOR_SIZE];
+    char i = 0;
     char j; char found=0;
     if (filename[*idx] == '/') *idx++;
     for (i = 0; filename[*idx+i] != '/' && filename[*idx+i] != '\0'; i++)
@@ -238,7 +240,7 @@ void findDir(char * parent, char * current, char * filename, int * idx, int * re
         end = 1;
     else end = 0;
     name[i] = '\0';
-    int j = i;
+    j = i;
     readSector(dir, DIRS_SECTOR);
     i = 0;
     while (i < MAX_DIRS && !found){
@@ -289,6 +291,7 @@ void clear(char *buffer, int length){
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
     int dirIndex;
     int i, j, sectorCount;
+    char found;
 	
     char map[SECTOR_SIZE];
     char files[SECTOR_SIZE];
@@ -307,8 +310,8 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
     }
 	
     if (sectorCount >= *sectors){
-		dirIndex = 0;
-		char found = FALSE;
+        dirIndex = 0;
+	found = FALSE;
         while ((dirIndex < MAX_FILES) && (found == FALSE)) {
             if (files[dirIndex * ENTRY_LENGTH + 1] == '\0')
 				found = TRUE;
@@ -424,14 +427,14 @@ void makeDirectory(char *path, int *result, char parentIndex) {
 
 void deleteFileIndex(char current) {
     char file[SECTOR_SIZE];
-    readSector(file, FILES_SECTOR);
     char sector[SECTOR_SIZE];
-    readSector(sector, SECTORS_SECTOR);
     char map[SECTOR_SIZE];
-    readSector(map, MAP_SECTOR);
     int idx;
-    idx = 0
-    // Set name to null terminator.
+    readSector(file, FILES_SECTOR);
+    readSector(sector, SECTORS_SECTOR);
+    readSector(map, MAP_SECTOR);
+    idx = 0;
+    
     file[current * ENTRY_LENGTH] = 0x00;
     file[current * ENTRY_LENGTH + 1] = '\0';
     while ((idx < MAX_SECTORS) && (sector[current * ENTRY_LENGTH + idx] != 0))
@@ -471,10 +474,9 @@ void deleteDirectoryIndex(char current) {
 }
 
 void deleteFile(char *path, int *result, char parentIndex) {
-    char parent = parentIndex;
-    int idx;
-    idx = 0;
     char current;
+    char parent = parentIndex;
+    int idx = 0;
     findFile(&parent, &current, path, &idx, result);
     if (*result == SUCCESS) {
         deleteFileIndex(current);
@@ -482,10 +484,9 @@ void deleteFile(char *path, int *result, char parentIndex) {
 }
 
 void deleteDirectory(char *path, int *success, char parentIndex) {
-    char parent = parentIndex;
-    int idx;
-    idx = 0;
     char current;
+    char parent = parentIndex;
+    int idx = 0;
     findDir(&parent, &current, path, &idx, success);
     if (*success == SUCCESS) {
         deleteDirectoryIndex(current);
