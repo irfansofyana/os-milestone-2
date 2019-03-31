@@ -172,123 +172,194 @@ void writeSector(char *buffer, int sector) {
 }
 
 char cmpArray(char * arr1, char * arr2, int length) {
-    int i = 0;
-    char equal = TRUE;
-    while ((equal) && (i < length)) {
-        equal = arr1[i] == arr2[i];
-        if (equal) {
-            if (arr1[i] == '\0') {
-                i = length;
-            }
-        }
-        i++;
+    int idx = 0;
+    char same = 1;
+    while (idx < length && same){
+        if (arr1[idx] == arr2[idx]) same = 1;
+        else same = 0;
+        if (same && arr1[idx] == '\0')
+            idx = length;
+        idx++;
     }
-    return equal;
+    return same;
 }
 
 void findFile(char * parent, char * current, char * filename, int * idx, int * result) {
     // Read the segment of the name.
-    char name[MAX_FILENAME + 1];
+    // char name[MAX_FILENAME + 1];
+    // char dir[SECTOR_SIZE];
+    // int i = 0;
+    // int j;
+    // char file;
+    // char found = FALSE;
+    // int count;
+    // if (filename[*idx] == '/') {
+    //     // *parent = DIR_ROOT;
+    //     *idx++;
+    // }
+    // while ((filename[*idx + i] != '\0') && (filename[*idx + i] != '/')) {
+    //     name[i] = filename[*idx + i];
+    //     i++;
+    // }
+    // // The name is of a file if it ends in a null terminator.
+    // file = filename[*idx + i] == '\0';
+    // name[i] = '\0';
+    // // Read from the respective sector.
+    // j = i;
+    // if (file) {
+    //     readSector(dir, FILES_SECTOR);
+    //     count = MAX_FILES;
+    // } else {
+    //     readSector(dir, DIRS_SECTOR);
+    //     count = MAX_DIRS;
+    // }
+    // // Find the dir/file from the sector.
+    // i = 0;
+    // while ((!found) && (i < count)) {
+    //     if ((dir[i * ENTRY_LENGTH] == *parent) && (cmpArray(name, dir + (i * ENTRY_LENGTH) + 1, MAX_FILENAME))) {
+    //         found = TRUE;
+    //     } else {
+    //         i++;
+    //     }
+    // }
+    // if (found) {
+    //     *current = i;
+    //     if (file) {
+    //         // File found.
+    //         *result = SUCCESS;
+    //     } else {
+    //         // Recursively search for the path.
+    //         *parent = *current;
+    //         *idx = *idx + j + 1;
+    //         findFile(parent, current, filename, idx, result);
+    //     }
+    // } else {
+    //     *result = NOT_FOUND;
+    // }
+    char name[MAX_FILENAME+3];
     char dir[SECTOR_SIZE];
-    int i = 0;
-    int j;
-    char file;
-    char found = FALSE;
-    int count;
-    if (filename[*idx] == '/') {
-        // *parent = DIR_ROOT;
+    char file; char found = 0;
+    int cnt = 0; int i = 0;
+    if (filename[*idx] == '/')
         *idx++;
-    }
-    while ((filename[*idx + i] != '\0') && (filename[*idx + i] != '/')) {
+    for (i = 0; filename[*idx+i] != '/' && filename[*idx+i] != '\0'; i++)
         name[i] = filename[*idx + i];
-        i++;
-    }
-    // The name is of a file if it ends in a null terminator.
-    file = filename[*idx + i] == '\0';
+    if (filename[*idx+i] == '\0')
+        file = 1;
+    else file = 0;
     name[i] = '\0';
-    // Read from the respective sector.
-    j = i;
-    if (file) {
-        readSector(dir, FILES_SECTOR);
-        count = MAX_FILES;
-    } else {
+    int j = i;
+    if (!file){
         readSector(dir, DIRS_SECTOR);
-        count = MAX_DIRS;
+        cnt = MAX_DIRS;
+    }else{
+        readSector(dir, FILES_SECTOR);
+        cnt = MAX_FILES; 
     }
-    // Find the dir/file from the sector.
+
     i = 0;
-    while ((!found) && (i < count)) {
-        if ((dir[i * ENTRY_LENGTH] == *parent) && (cmpArray(name, dir + (i * ENTRY_LENGTH) + 1, MAX_FILENAME))) {
-            found = TRUE;
-        } else {
-            i++;
-        }
+    while ((i < cnt) && !found) {
+        if ((dir[i * ENTRY_LENGTH] == *parent) && (cmpArray(name, dir + (i * ENTRY_LENGTH) + 1, MAX_FILENAME)))
+            found = 1;
+        else i++
     }
-    if (found) {
+    
+    if (found){
         *current = i;
-        if (file) {
-            // File found.
+        if (file)
             *result = SUCCESS;
-        } else {
-            // Recursively search for the path.
+        else{
             *parent = *current;
             *idx = *idx + j + 1;
             findFile(parent, current, filename, idx, result);
         }
-    } else {
+    }else 
         *result = NOT_FOUND;
-    }
 }
 
 void findDir(char * parent, char * current, char * filename, int * idx, int * result) {
     // Read the segment of the name.
-    char name[MAX_FILENAME + 1];
-    char i = 0;
-    char end;
-    char dir[SECTOR_SIZE];
-    char j;
-    char found;
-    if (filename[*idx] == '/') {
-        // *parent = DIR_ROOT;
-        *idx++;
-    }
-    while ((filename[*idx + i] != '\0') && (filename[*idx + i] != '/')) {
+    // char name[MAX_FILENAME + 1];
+    // char i = 0;
+    // char end;
+    // char dir[SECTOR_SIZE];
+    // char j;
+    // char found;
+    // if (filename[*idx] == '/') {
+    //     // *parent = DIR_ROOT;
+    //     *idx++;
+    // }
+    // while ((filename[*idx + i] != '\0') && (filename[*idx + i] != '/')) {
+    //     name[i] = filename[*idx + i];
+    //     i++;
+    // }
+    // // The name is of a file if it ends in a null terminator.
+    // end = filename[*idx + i] == '\0';
+    // name[i] = '\0';
+    // // Read from the respective sector.
+    // j = i;
+    // readSector(dir, DIRS_SECTOR);
+    // // Find the dir/file from the sector.
+    // found = FALSE;
+    // i = 0;
+    // while ((!found) && (i < MAX_DIRS)) {
+    //     char buff[4];
+    //     int k = 0;
+    //     if ((dir[i * ENTRY_LENGTH] == *parent) && (cmpArray(name, dir + (i * ENTRY_LENGTH) + 1, MAX_FILENAME))) {
+    //         found = TRUE;
+    //     } else {
+    //         i++;
+    //     }
+    // }
+    // if (found) {
+    //     *current = i;
+    //     if (end) {
+    //         // Dir found.
+    //         *result = SUCCESS;
+    //     } else {
+    //         // Recursively search for the path.
+    //         *parent = *current;
+    //         *idx = *idx + j + 1;
+    //         findDir(parent, current, filename, idx, result);
+    //     }
+    // } else {
+    //     *result = NOT_FOUND;
+    // }
+
+    char name[MAX_FILENAME+1];
+    int i = 0;
+    char end; char dir[SECTOR_SIZE];
+    char j; char found=0;
+    if (filename[*idx] == '/') *idx++;
+    for (i = 0; filename[*idx+i] != '/' && filename[*idx+i] != '\0'; i++)
         name[i] = filename[*idx + i];
-        i++;
-    }
-    // The name is of a file if it ends in a null terminator.
-    end = filename[*idx + i] == '\0';
+    if (filename[*idx + i] == '\0')
+        end = 1;
+    else end = 0;
     name[i] = '\0';
-    // Read from the respective sector.
-    j = i;
+    int j = i;
     readSector(dir, DIRS_SECTOR);
-    // Find the dir/file from the sector.
-    found = FALSE;
     i = 0;
-    while ((!found) && (i < MAX_DIRS)) {
-        char buff[4];
+    while (i < MAX_DIRS && !found){
         int k = 0;
         if ((dir[i * ENTRY_LENGTH] == *parent) && (cmpArray(name, dir + (i * ENTRY_LENGTH) + 1, MAX_FILENAME))) {
-            found = TRUE;
+            found = 1;
         } else {
             i++;
         }
     }
-    if (found) {
+    if (found){
         *current = i;
-        if (end) {
-            // Dir found.
+        if (end)
             *result = SUCCESS;
-        } else {
-            // Recursively search for the path.
-            *parent = *current;
+        else{
             *idx = *idx + j + 1;
+            *parent = *current;
             findDir(parent, current, filename, idx, result);
         }
-    } else {
+    }else 
         *result = NOT_FOUND;
-    }
-}
+}   
 
 void readFile(char *buffer, char *path, int *result, char parentIndex) {
     char parent = parentIndex;
