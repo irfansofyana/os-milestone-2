@@ -106,10 +106,7 @@ void handleArg(char *input, curDir){
 int strncmp(char *a, char *b, int len){
 	int idx;
 	for(idx=0;idx<len;idx++){
-		if(a[idx]=='\0' || b[idx] == '\0'){
-			return 0;
-		}
-		if(a[idx]!=b[idx]){
+		if(a[idx]=='\0' || b[idx] == '\0' || a[idx] != b[idx]){
 			return 0;
 		}
 	}
