@@ -1,18 +1,31 @@
 #include "kernel.h"
 
 int main() {
-    int success;
-    char buf[MAX_SECTORS * SECTOR_SIZE];
+    int succ = 0;
+    char buffer[MAX_SECTORS * SECTOR_SIZE];
+    int x;
+    int y;
+    char curdir = 0xFF; // root
+    char argc = 0;
     char *argv[2];
+    int i = 0;
+    int j = 0;
     makeInterrupt21();
     
-    success = 0;
-    // interrupt(0x21, 0x20, root, argc, argv)
-    // Default : root : 0xFF, argc = 0
-    interrupt(0x21, 0x20, 0xFF, 0, argv);
+    while (i <= 14){
+        if (j == 80){
+            j = 0;
+            i++;
+        }
+        putInMemory(0xB000, 0x8000 + ((80*i + j-1)*2), ' ' );
+        putInMemory(0xB000, 0x8001 + ((80*i + j-1)*2), 0x3 );
+        j++;
+    }
 
-    // Interrupt untuk memanggil shell
-    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
+    // Set default args.
+    interrupt(0x21, 0x20, curdir, argc, argv);
+    // Calls shell.
+    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
     while (1);  
 }
 void handleInterrupt21 (int AX, int BX, int CX, int DX) {
