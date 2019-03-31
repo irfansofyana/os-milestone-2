@@ -7,7 +7,6 @@ int main() {
     makeInterrupt21();
     
     success = 0;
-    // interrupt(0x21, 0x20, root, argc, argv)
     // Default : root : 0xFF, argc = 0
     interrupt(0x21, 0x20, 0xFF, 0, argv);
 
@@ -15,6 +14,8 @@ int main() {
     interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
     while (1);  
 }
+
+/*Implementasi handleInterrupt21*/
 void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     char AL, AH;
     int i = 0;
@@ -73,6 +74,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
     }
 }
 
+/*Fungsi untuk mencetak print string yang ada di shell */
 void printString(char *string) {
     while (*string != '\0') {
         if ((*string) == '\r') {
@@ -85,6 +87,7 @@ void printString(char *string) {
     }
 }
 
+/*Fungsi yang digunakan untuk membaca string yang ada di shell*/
 void readString(char *string) {
     char reading = TRUE;
     int count = 0;
@@ -113,6 +116,7 @@ void readString(char *string) {
     }
 }
 
+/*fungsi untuk mencari nilai sisa dari pembagian dua bilangan */
 int mod(int a, int b) {
     while(a >= b){
         a = a - b;
@@ -120,6 +124,7 @@ int mod(int a, int b) {
     return a;
 }
 
+/*fungsi yang menghasilkan nilai pembagian bulat dari dua bilangan*/
 int div(int a, int b) {
     int q = 0;
     while(q*b <=a) {
@@ -128,14 +133,17 @@ int div(int a, int b) {
     return q-1;
 }
 
+/*fungsi yang digunakan untuk membaca sector*/
 void readSector(char *buffer, int sector) {
     interrupt(0x13, 0x201, buffer, div(sector, 36) * 0x100 + mod(sector, 18) + 1, mod(div(sector, 18), 2) * 0x100);
 }
 
+/*fungsi yang digunakan untuk menulis sector*/
 void writeSector(char *buffer, int sector) {
     interrupt(0x13, 0x301, buffer, div(sector, 36) * 0x100 + mod(sector, 18) + 1, mod(div(sector, 18), 2) * 0x100);
 }
 
+/*fungsi yang digunakan untuk membandingkan karakter pada dua buah string */
 char cmpArray(char * arr1, char * arr2, int length) {
     int idx = 0;
     char same = 1;
@@ -149,6 +157,7 @@ char cmpArray(char * arr1, char * arr2, int length) {
     return same;
 }
 
+/*fungsi untuk mencari sebuah file*/
 void findFile(char * parent, char * current, char * filename, int * idx, int * result) {
     char name[MAX_FILENAME+3];
     char dir[SECTOR_SIZE];
@@ -156,14 +165,20 @@ void findFile(char * parent, char * current, char * filename, int * idx, int * r
     int cnt = 0;
     int i = 0;
     int j;
+
+    /*parent = directory root*/
     if (filename[*idx] == '/')
         *idx++;
     for (i = 0; filename[*idx+i] != '/' && filename[*idx+i] != '\0'; i++)
         name[i] = filename[*idx + i];
+    
+    /*file akan bernilai 1 jika diakhiri null terminator */
     if (filename[*idx+i] == '\0')
         file = 1;
     else file = 0;
     name[i] = '\0';
+    
+    /*membaca respective sector*/
     j = i;
     if (!file){
         readSector(dir, DIRS_SECTOR);
@@ -173,6 +188,7 @@ void findFile(char * parent, char * current, char * filename, int * idx, int * r
         cnt = MAX_FILES; 
     }
 
+    /*mencari directory atau file yang ada pada sektor*/
     i = 0;
     while ((i < cnt) && !found) {
         if ((dir[i * ENTRY_LENGTH] == *parent) && (cmpArray(name, dir + (i * ENTRY_LENGTH) + 1, MAX_FILENAME)))
@@ -182,9 +198,11 @@ void findFile(char * parent, char * current, char * filename, int * idx, int * r
     
     if (found){
         *current = i;
+        /*file berhasil ditemukan!*/
         if (file)
             *result = SUCCESS;
         else{
+            /*melakukan rekursif untuk mencari path dari directorynya*/
             *parent = *current;
             *idx = *idx + j + 1;
             findFile(parent, current, filename, idx, result);
@@ -193,20 +211,28 @@ void findFile(char * parent, char * current, char * filename, int * idx, int * r
         *result = NOT_FOUND;
 }
 
+/*fungsi untuk mencari directory*/
 void findDir(char * parent, char * current, char * filename, int * idx, int * result) {
     char name[MAX_FILENAME+1];
     char end; char dir[SECTOR_SIZE];
     char i = 0;
     char j; char found=0;
+
+    /* *parent = directory root*/
     if (filename[*idx] == '/') *idx++;
     for (i = 0; filename[*idx+i] != '/' && filename[*idx+i] != '\0'; i++)
         name[i] = filename[*idx + i];
+    
+    /*end akan bernilai 1 jika diakhiri null terminator */
     if (filename[*idx + i] == '\0')
         end = 1;
     else end = 0;
     name[i] = '\0';
+    
+    /*membaca sector */
     j = i;
     readSector(dir, DIRS_SECTOR);
+    /*melakukan pencarian yang ada di dalam sektor*/
     i = 0;
     while (i < MAX_DIRS && !found){
         int k = 0;
@@ -229,6 +255,7 @@ void findDir(char * parent, char * current, char * filename, int * idx, int * re
         *result = NOT_FOUND;
 }   
 
+/*implementasi fungsi untuk membaca sebuah file*/
 void readFile(char *buffer, char *path, int *result, char parentIndex) {
     int i = 0;
     char current;
@@ -246,6 +273,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex) {
     }
 }
 
+/*implementasi untuk mengosongkan array buffer*/
 void clear(char *buffer, int length){
     int i;
     for(i = 0; i < length; ++i){
@@ -253,6 +281,7 @@ void clear(char *buffer, int length){
     }
 }
 
+/*implementasi fungsi writefile yang digunakan untuk membuat sebuah file*/
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
     int dirIndex;
     int i, j, sectorCount;
@@ -263,8 +292,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
     char sector[SECTOR_SIZE];
     char sectorBuffer[SECTOR_SIZE];
 
-    readSector(map
-        , MAP_SECTOR);
+    readSector(map, MAP_SECTOR);
     readSector(files, FILES_SECTOR);
     readSector(sector, SECTORS_SECTOR);
 	
@@ -299,11 +327,13 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
                 filename[j - offset] = '\0';
                 file = path[j] == '\0';
                 if (file) {
+                    /*menetapkan parent index*/
                     files[dirIndex * ENTRY_LENGTH] = parent;
+                    /*menetapkan nama file / filename*/
                     for (j = 0; filename[j] != '\0'; j++)
                         files[dirIndex * ENTRY_LENGTH + 1 + j] = filename[j];
                     writeSector(files, FILES_SECTOR);
-					i = 0; sectorCount = 0;
+                    i = 0; sectorCount = 0;
                     while (i < MAX_BYTE && sectorCount < *sectors) {
                         if (map[i] == EMPTY) {
                             map[i] = USED;
@@ -329,10 +359,12 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
 
 }
 
+/*implementasi prosedur untuk menjalankan pogram*/
 void executeProgram(char *path, int segment, int *result, char parentIndex) {
     char buffer[MAX_SECTORS * SECTOR_SIZE];
     readFile(buffer, path, result, parentIndex);
     if (*result == SUCCESS) {
+        /*berhasil dibaca!*/
         int i;
 		for (i = 0; i < MAX_SECTORS * SECTOR_SIZE; i++)
             putInMemory(segment, i, buffer[i]);
@@ -340,6 +372,7 @@ void executeProgram(char *path, int segment, int *result, char parentIndex) {
     }
 }
 
+/*fungsi untuk menghentikan program*/
 void terminateProgram (int *result) {
     char shell[6];
     shell[0] = 's';
@@ -351,6 +384,7 @@ void terminateProgram (int *result) {
     executeProgram(shell, 0x2000, result, 0xFF);
 }
 
+/*implementasi fungsi untuk membuat sebuah direktoru*/
 void makeDirectory(char *path, int *result, char parentIndex) {
     char parentidx = parentIndex;
     int idx = 0;
@@ -391,6 +425,7 @@ void makeDirectory(char *path, int *result, char parentIndex) {
     }
 }
 
+/*fungsi untuk menghapus sebuah index file*/
 void deleteFileIndex(char current) {
     char file[SECTOR_SIZE];
     char sector[SECTOR_SIZE];
@@ -400,7 +435,7 @@ void deleteFileIndex(char current) {
     readSector(sector, SECTORS_SECTOR);
     readSector(map, MAP_SECTOR);
     idx = 0;
-    
+    /*menetapkan nama menjadi null terminator*/
     file[current * ENTRY_LENGTH] = 0x00;
     file[current * ENTRY_LENGTH + 1] = '\0';
     while ((idx < MAX_SECTORS) && (sector[current * ENTRY_LENGTH + idx] != 0))
@@ -419,7 +454,7 @@ void deleteDirectoryIndex(char current) {
     int idx=0;
     char files[SECTOR_SIZE];
     readSector(directory, DIRS_SECTOR);
-    // Set name to null terminator.
+    /*menetapkan nama menjadi null terminator*/
     directory[current * ENTRY_LENGTH] = 0x00;
     directory[current * ENTRY_LENGTH + 1] = '\0';
     writeSector(directory, DIRS_SECTOR);
@@ -439,6 +474,7 @@ void deleteDirectoryIndex(char current) {
     }
 }
 
+/*implementasi fungsi untuk menghapus file*/
 void deleteFile(char *path, int *result, char parentIndex) {
     char current;
     char parent = parentIndex;
@@ -449,6 +485,7 @@ void deleteFile(char *path, int *result, char parentIndex) {
     }
 }
 
+/*implementasi fungsi untuk menghapus directory*/
 void deleteDirectory(char *path, int *success, char parentIndex) {
     char current;
     char parent = parentIndex;
@@ -459,6 +496,7 @@ void deleteDirectory(char *path, int *success, char parentIndex) {
     }
 }
 
+/*implementasi fungsi putArgs*/
 void putArgs (char curdir, char argc, char **argv) {
     char args[SECTOR_SIZE];
     int i, j, p;
