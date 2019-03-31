@@ -442,11 +442,12 @@ void makeDirectory(char *path, int *result, char parentIndex) {
             *result = NOT_FOUND;
         } else {
             char directory[SECTOR_SIZE];
-            current = 0;
+            // current = 0;
             readSector(directory, DIRS_SECTOR);
-            while ((current < MAX_DIRS) && (directory[current * ENTRY_LENGTH + 1] != '\0')) {
-                current = current+1;
-            }
+            for (current = 0; (current < MAX_DIRS) && (directory[current * ENTRY_LENGTH + 1] != '\0'); current++);
+            // while ((current < MAX_DIRS) && (directory[current * ENTRY_LENGTH + 1] != '\0')) {
+            //     current = current+1;
+            // }
             if (current < MAX_DIRS) {
                 directory[current * ENTRY_LENGTH] = parentidx;
                 i = 0;
