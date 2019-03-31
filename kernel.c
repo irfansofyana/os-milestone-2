@@ -22,9 +22,10 @@ int main() {
         j++;
     }
 
-    // Set default args.
+    /*menetapkan default args*/
     interrupt(0x21, 0x20, curdir, argc, argv);
-    // Calls shell.
+    
+    /*memanggil shell */
     interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
     while (1);  
 }
