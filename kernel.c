@@ -400,7 +400,8 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex) {
     int dirIndex;
     int i, j, sectorCount;
 
-    readSector(map, MAP_SECTOR);
+    readSector(map
+        , MAP_SECTOR);
     readSector(files, FILES_SECTOR);
     readSector(sector, SECTORS_SECTOR);
     for (i = 0, sectorCount = 0; i < MAX_BYTE && sectorCount < *sectors; ++i) {
