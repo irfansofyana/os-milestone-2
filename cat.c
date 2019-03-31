@@ -27,7 +27,6 @@ void main() {
             }
         }
         if (mode == 0) {
-            // Output the content of a file.
             interrupt(0x21, (curdir << 8) | 0x04, buff, argv[0], &succ);
             if (succ == SUCCESS) {
                 interrupt(0x21, 0x0, buff, 0, 0);
@@ -39,7 +38,7 @@ void main() {
             for (idx = 0; idx < SECTOR_SIZE * MAX_SECTORS; idx++) {
                 buff[idx] = '\0';
             }
-            interrupt(0x21, 0x0, "~~ Empty line to end ~~\n", 0, 0);
+            interrupt(0x21, 0x0, "Press Enter to End.\n", 0, 0);
             j = 0;
             interrupt(0x21, 0x01, l_buffer, 0, 0);
             while (l_buffer[0] != '\0') {
@@ -54,7 +53,7 @@ void main() {
                 interrupt(0x21, 0x01, l_buffer, 0, 0);
             }
             buff[j - 1] = '\0';
-            interrupt(0x21, 0x0, "~~ saving ~~\n", 0, 0);
+            interrupt(0x21, 0x0, "Saving File.\n", 0, 0);
             sectors = div(j, SECTOR_SIZE) + 1;
             interrupt(0x21, (curdir << 8) | 0x05, buff, argv[0], &sectors);
         }

@@ -30,13 +30,13 @@ void main(){
 		else if(input[2] == ' '){
 			interrupt(0x21, 0x30, input+offset, se, &useDir);
 			if(se[2] == NOT_FOUND){
-				interrupt(0x21, 0x00, "ERROR! Directory Not Found.\r\n", 0, 0);
+				interrupt(0x21, 0x00, "Error, Directory Not Found.\r\n", 0, 0);
 			}
 			else{
 				interrupt(0x21, 0x02, directory, DIRS_SECTOR, 0);
 				interrupt(0x21, useDir<<8|0x31, directory, input+offset, se);
 				if(se[2] == NOT_FOUND){
-					interrupt(0x21, 0x00, "ERROR! Directory Not Found.\r\n", 0, 0);
+					interrupt(0x21, 0x00, "Error, Directory Not Found.\r\n", 0, 0);
 				}
 				else{
 					curDir = (char)se[2];

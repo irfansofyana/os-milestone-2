@@ -1,17 +1,31 @@
 #include "kernel.h"
 
 int main() {
-    int success;
-    char buf[MAX_SECTORS * SECTOR_SIZE];
+    int succ = 0;
+    char buffer[MAX_SECTORS * SECTOR_SIZE];
+    int x;
+    int y;
+    char curdir = 0xFF; // root
+    char argc = 0;
     char *argv[2];
+    int i = 0;
+    int j = 0;
     makeInterrupt21();
     
-    success = 0;
-    // Default : root : 0xFF, argc = 0
-    interrupt(0x21, 0x20, 0xFF, 0, argv);
+    while (i <= 14){
+        if (j == 80){
+            j = 0;
+            i++;
+        }
+        putInMemory(0xB000, 0x8000 + ((80*i + j-1)*2), ' ' );
+        putInMemory(0xB000, 0x8001 + ((80*i + j-1)*2), 0x3 );
+        j++;
+    }
 
-    // Interrupt untuk memanggil shell
-    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &success);
+    // Set default args.
+    interrupt(0x21, 0x20, curdir, argc, argv);
+    // Calls shell.
+    interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &succ);
     while (1);  
 }
 
@@ -404,11 +418,12 @@ void makeDirectory(char *path, int *result, char parentIndex) {
             *result = NOT_FOUND;
         } else {
             char directory[SECTOR_SIZE];
-            current = 0;
+            // current = 0;
             readSector(directory, DIRS_SECTOR);
-            while ((current < MAX_DIRS) && (directory[current * ENTRY_LENGTH + 1] != '\0')) {
-                current = current+1;
-            }
+            for (current = 0; (current < MAX_DIRS) && (directory[current * ENTRY_LENGTH + 1] != '\0'); current++);
+            // while ((current < MAX_DIRS) && (directory[current * ENTRY_LENGTH + 1] != '\0')) {
+            //     current = current+1;
+            // }
             if (current < MAX_DIRS) {
                 directory[current * ENTRY_LENGTH] = parentidx;
                 i = 0;
